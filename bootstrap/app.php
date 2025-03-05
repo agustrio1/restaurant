@@ -24,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
             '/email/verification-notification',
             '/dashboard/*'
         ]);
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        ]);
+        
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->renderable(function (\Illuminate\Session\TokenMismatchException $e) {

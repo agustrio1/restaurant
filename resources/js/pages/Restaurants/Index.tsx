@@ -1,13 +1,16 @@
-import { usePage, Link, Head } from "@inertiajs/react";
+import { useState } from "react";
+import { usePage, Link, Head, router } from "@inertiajs/react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast"; 
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 
 interface Restaurant {
   id: string;
   name: string;
-  addresss: string;
+  address: string;
   phone_number: string;
   opening_hours: string;
   capacity: number;
@@ -21,6 +24,37 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Index() {
   const { restaurants } = usePage<{ restaurants: { data: Restaurant[] } }>().props;
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+
+  // Buka modal konfirmasi
+  const openDeleteDialog = (restaurant: Restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setOpen(true);
+  };
+
+  // Hapus restoran setelah konfirmasi
+  const handleDelete = () => {
+    if (!selectedRestaurant) return;
+
+    router.delete(`/dashboard/restaurants/${selectedRestaurant.id}`, {
+      onSuccess: () => {
+        toast({
+          title: "Sukses!",
+          description: "Restoran berhasil dihapus.",
+          variant: "default",
+        });
+        setOpen(false);
+      },
+      onError: () =>
+        toast({
+          title: "Gagal!",
+          description: "Gagal menghapus restoran.",
+          variant: "destructive",
+        }),
+    });
+  };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -30,38 +64,57 @@ export default function Index() {
         <Link href="/dashboard/restaurants/create">
           <Button className="mb-4">Tambah Restoran</Button>
         </Link>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>Alamat</TableHead>
-              <TableHead>No. Telepon</TableHead>
-              <TableHead>Jam Buka</TableHead>
-              <TableHead>Kapasitas</TableHead>
-              <TableHead>Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {restaurants.data.map((restaurant) => (
-              <TableRow key={restaurant.id}>
-                <TableCell>{restaurant.name}</TableCell>
-                <TableCell>{restaurant.addresss}</TableCell>
-                <TableCell>{restaurant.phone_number}</TableCell>
-                <TableCell>{restaurant.opening_hours}</TableCell>
-                <TableCell>{restaurant.capacity}</TableCell>
-                <TableCell>
-                  <Link href={`/dashboard/restaurants/${restaurant.id}`}>
-                    <Button variant="outline">Detail</Button>
-                  </Link>
-                  <Link href={`/dashboard/restaurants/${restaurant.id}/edit`}>
-                    <Button className="ml-2">Edit</Button>
-                  </Link>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nama</TableHead>
+                <TableHead>Alamat</TableHead>
+                <TableHead>No. Telepon</TableHead>
+                <TableHead>Jam Buka</TableHead>
+                <TableHead>Kapasitas</TableHead>
+                <TableHead>Aksi</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {restaurants.data.map((restaurant) => (
+                <TableRow key={restaurant.id}>
+                  <TableCell>{restaurant.name}</TableCell>
+                  <TableCell>{restaurant.address}</TableCell>
+                  <TableCell>{restaurant.phone_number}</TableCell>
+                  <TableCell>{restaurant.opening_hours}</TableCell>
+                  <TableCell>{restaurant.capacity}</TableCell>
+                  <TableCell className="flex gap-2">
+                    <Link href={`/dashboard/restaurants/${restaurant.id}`}>
+                      <Button variant="outline">Detail</Button>
+                    </Link>
+                    <Link href={`/dashboard/restaurants/${restaurant.id}/edit`}>
+                      <Button>Edit</Button>
+                    </Link>
+                    <Button variant="destructive" onClick={() => openDeleteDialog(restaurant)}>
+                      Hapus
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
+  
+      {/* Dialog Konfirmasi Hapus */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hapus Restoran</DialogTitle>
+          </DialogHeader>
+          <p>Apakah Anda yakin ingin menghapus restoran <strong>{selectedRestaurant?.name}</strong>?</p>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
+            <Button variant="destructive" onClick={handleDelete}>Hapus</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
