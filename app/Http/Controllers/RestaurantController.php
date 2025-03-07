@@ -23,6 +23,18 @@ class RestaurantController extends Controller
     }
 
     /**
+ * Ambil semua restoran untuk halaman utama & about.
+ */
+public function publicIndex()
+{
+    $restaurants = Restaurant::latest()->get();
+
+    return Inertia::render('Public/Restaurants', [
+        'restaurants' => $restaurants,
+    ]);
+}
+
+    /**
      * Tampilkan form tambah restoran.
      */
     public function create(): Response
