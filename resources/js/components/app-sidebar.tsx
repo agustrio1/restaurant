@@ -18,6 +18,11 @@ const mainNavItems: NavItem[] = [
         url: '/dashboard/restaurants',
         icon: Utensils
     },
+    {
+        title:'Meja',
+        url: '/dashboard/tables',
+        icon: Utensils
+    },
 ];
 
 const footerNavItems: NavItem[] = [

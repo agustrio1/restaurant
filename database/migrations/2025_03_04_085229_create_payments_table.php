@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignUlid('reservation_id')->constrained('reservations')->onDelete('cascade');
             $table->foreignUlid('user_id')->constrained('users')->onDelete('cascade');
             $table->decimal('amount', 10, 2);
-            $table->enum('payment_method', ['qris', 'virtual_account']);
+            $table->enum('payment_method', ['qris', 'virtual_account', 'cash'])->default('cash');
             $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
             $table->string('transaction_id')->unique();
             $table->timestamps();
